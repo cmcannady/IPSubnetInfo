@@ -10,7 +10,7 @@
 <DIV style="FONT-SIZE: 18px; FONT-FAMILY: sans-serif; FONT-WEIGHT: 300; PADDING-BOTTOM: 20px; PADDING-TOP: 20px; PADDING-LEFT: 20px; PADDING-RIGHT: 20px">This fixlet manages&nbsp;the default&nbsp;BigFix settings for ALL infrastructure endpoints managed by BigFix on the Pocket Road network.</DIV></DIV>]]></Description>
 		<Relevance>(exists relay service) OR (exists main gather service)</Relevance>
 		<Relevance>(not exists setting "__RelaySelect_Automatic" whose (value of it = "0") of client)</Relevance>
-		<Relevance>(not exists setting "_BESClient_RelaySelect_FailoverRelay" whose (value of it = "http://bigfix.caseycannady.com:52311/bfmirror/downloads/") of client)</Relevance>
+		<Relevance>(not exists setting "_BESClient_RelaySelect_FailoverRelay" whose (value of it = "http://bigfix.company-domain.com:52311/bfmirror/downloads/") of client)</Relevance>
 		<Relevance>(not exists setting "_BESClient_NetSignature" whose (value of it = unique value of concatenations ";" of (it as string) whose(it != "127.0.0.1" and it does not start with "169.") of addresses of ip interfaces of network as string) of client)</Relevance>
 		<Category>IPSubnetCSV, Global, BES Infrastructure, Default Settings</Category>
 		<Source>HCL BigFix Professional Services</Source>
@@ -39,7 +39,7 @@
 // *** *************************************************************************** ***
 
 // Static parameters
-parameter "__DMZ_RELAY" = "http://bigfix.caseycannady.com:52311/bfmirror/downloads/"
+parameter "__DMZ_RELAY" = "http://bigfix.company-domain.com:52311/bfmirror/downloads/"
 
 // Check for existance of IPSubnetInfo CSV file in current site cache
 if {exists file "IPSubnetInfo.csv" of client folder of current site}
