@@ -15,7 +15,7 @@
 		<Relevance>(not exists setting "_BESClient_Comm_CommandPollEnable" whose (value of it = "1") of client)</Relevance>
 		<Relevance>(not exists setting "_BESClient_Comm_CommandPollIntervalSeconds" whose (value of it = "21600") of client)</Relevance>
 		<Relevance>(not exists setting "_BESClient_Download_PreCacheStageDiskLimitMB" whose (value of it = "8192") of client)</Relevance>
-		<Relevance>(not exists setting "_BESClient_RelaySelect_FailoverRelay" whose (value of it = "http://bigfix.caseycannady.com:52311/bfmirror/downloads/") of client)</Relevance>
+		<Relevance>(not exists setting "_BESClient_RelaySelect_FailoverRelay" whose (value of it = "http://bigfix.company-domain.com:52311/bfmirror/downloads/") of client)</Relevance>
 		<Relevance>(not exists setting "_BESClient_NetSignature" whose (value of it = unique value of concatenations ";" of (it as string) whose(it != "127.0.0.1" and it does not start with "169.") of addresses of ip interfaces of network as string) of client)</Relevance>
 		<Category>IPSubnetCSV, Global, BESClient, Default, Settings</Category>
 		<Source>HCL BigFix Professional Services</Source>
@@ -44,7 +44,7 @@
 // *** *************************************************************************** ***
 
 // Static parameters
-parameter "__DMZ_RELAY" = "http://bigfix.caseycannady.com:52311/bfmirror/downloads/"
+parameter "__DMZ_RELAY" = "http://bigfix.company-domain.com:52311/bfmirror/downloads/"
 
 // Set agents to use automatic relay selection
 setting "__RelaySelect_Automatic"="1" on "{now}" for client
