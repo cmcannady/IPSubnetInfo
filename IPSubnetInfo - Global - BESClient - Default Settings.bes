@@ -17,7 +17,7 @@
 		<Relevance>(not exists setting "_BESClient_Comm_CommandPollEnable" whose (value of it = "1") of client)</Relevance>
 		<Relevance>(not exists setting "_BESClient_Comm_CommandPollIntervalSeconds" whose (value of it = "21600") of client)</Relevance>
 		<Relevance>(not exists setting "_BESClient_Download_PreCacheStageDiskLimitMB" whose (value of it = "8192") of client)</Relevance>
-		<Relevance>(not exists setting "_BESClient_RelaySelect_FailoverRelay" whose (value of it = "http://bfdmz.company-name.com:52311/bfmirror/downloads/") of client)</Relevance>
+		<Relevance>(not exists setting "_BESClient_RelaySelect_FailoverRelay" whose (value of it = "http://DMZ-FDQN-GOES-HERE:52311/bfmirror/downloads/") of client)</Relevance>
 		<Relevance>(not exists setting "_BESClient_NetSignature" whose (value of it = unique value of concatenations ";" of (it as string) whose(it != "127.0.0.1" and it does not start with "169.") of addresses of ip interfaces of network as string) of client)</Relevance>
 		<Category>IPSubnetInfo, Global, BESClient, Default, Settings</Category>
 		<Source>HCL BigFix Professional Services</Source>
@@ -28,7 +28,7 @@
 		<SANSID></SANSID>
 		<MIMEField>
 			<Name>x-fixlet-modification-time</Name>
-			<Value>Wed, 29 Mar 2023 00:00:30 +0000</Value>
+			<Value>Thu, 30 Mar 2023 02:55:37 +0000</Value>
 		</MIMEField>
 		<Domain>BESC</Domain>
 		<DefaultAction ID="Action1">
@@ -42,36 +42,33 @@
 // *** Author        :: Casey Cannady (casey.cannady@hcl.com)                      ***
 // *** Company       :: HCL Software - BigFix Professional Services                ***
 // *** Date Created  :: 10/23/2019                                                 ***
-// *** Date Modified :: 03/28/2023                                                 ***
+// *** Date Modified :: 03/29/2023                                                 ***
 // *** *************************************************************************** ***
 
 // Static parameters
-parameter "__DMZ_RELAY" = "http://bfdmz.company-name.com:52311/bfmirror/downloads/"
+//   ***
+//   *** MAKE SURE TO UPDATE THE DMZ-FDQN-GOES-HERE WITH CORRECT C-NAME ALIAS ***
+//   ***
+parameter "__DMZ_RELAY" = "http://DMZ-FDQN-GOES-HERE:52311/bfmirror/downloads/"
+
+// Handle registration address requirement
+if {exists setting "_BESClient_RegistrationAddress" of client}
+	parameter "__RegistrationAddress" = {value of setting "_BESClient_RegistrationAddress" of client}
+else
+	if {exists registration address of client}
+		parameter "__RegistrationAddress" = {registration address of client}
+	else
+		exit "999"
+	endif
+endif
 
 // Set agents to use automatic relay selection
 setting "__RelaySelect_Automatic"="1" on "{now}" for client
 
 // Check for existance of IPSubnetInfo CSV file in current site cache
-if {exists file "IPSubnetInfo.csv" of folder (name of client folder of current site)}
-	// Define path to IPSubnetInfo CSV file
-	parameter "__IPSI_File" = "{pathname of file "IPSubnetInfo.csv" of folder (name of client folder of current site)}"
-	
-	// *** *********************************************************************** ***
-	// *** Update code here with new CIDR relevance for registered address setting ***
-	// *** *********************************************************************** ***
-
-	// Check endpoint subnet for Class-B vs. Class-C IPv4 address
-	if {(following text of last "." of preceding text of last "." of (subnet address of adapters of network as string) as integer) > 0}
-		// Extract Class-B IPv4 subnet info from distributed CSV file
-		parameter "__IPSubnetInfo" = "{lines whose (it as trimmed string as lowercase starts with (preceding text of last "." of preceding text of last "." of (it as string) whose(it != "127.0.0.1" and it does not start with "169.") of  addresses of ip interfaces whose (up of it) of network)) of file (parameter "__IPSI_File") as trimmed string}"
-	else
-		// Extract Class-C IPv4 subnet info from distributed CSV file
-		parameter "__IPSubnetInfo" = "{lines whose (it as trimmed string as lowercase starts with (preceding text of last "." of (it as string) whose(it != "127.0.0.1" and it does not start with "169.") of  addresses of ip interfaces whose (up of it) of network)) of file (parameter "__IPSI_File") as trimmed string}"
-	endif
-
-	// *** *********************************************************************** ***
-	// *** Update code here with new CIDR relevance for registered address setting ***
-	// *** *********************************************************************** ***
+if {exists file "IPSubnetInfo.csv" of folder (pathname of client folder of current site)}
+	// Identify IPSubnetInfo record from CSV by CIDR string comparison
+	parameter "__IPSubnetInfo" = {(tuple string item 2 of item 1 of it) of (maximum of (it as integer) of tuple string items 3 of substrings separated by "|" of it, substrings separated by "|" of it) whose (item 0 of it as integer = tuple string item 3 of item 1 of it as integer) of concatenation "|" of (it as string) of (first (tuple string item 1 of tuple string item 1 of it as integer) of it, first (tuple string item 1 of it as integer) of tuple string item 1 of it,tuple string item 2 of tuple string item 1 of it, tuple string item 1 of tuple string item 1 of it as integer) whose (item 0 of it = item 1 of it) of (it as string) of (elements of item 0 of it, (concatenation of lasts 8 of padded strings of (it as integer as bit set) of substrings separated by "." of tuple string item 0 of it, number of one bits of bit set (concatenation of lasts 8 of padded strings of (it as integer as bit set) of substrings separated by "." of tuple string item 1 of it) , tuple string item 2 of it) of (concatenation ", " of substrings separated by "," of it) of elements of item 1 of it) of ((set of ((concatenation of lasts 8 of padded strings of (it as integer as bit set) of substrings separated by "." of (parameter "__RegistrationAddress")))) , (set of lines whose ((it starts with regex "^\d{1,3}}\.\d{1,3}}.\d{1,3}}.\d{1,3}}.*")) of file "IPSubnetInfo.csv" of folder (pathname of client folder of current site)))}
 	
 	// Extract subnet info for client
 	parameter "__IPSubnet_Subnet" = "{preceding text of first ";" of (parameter "__IPSubnetInfo") as trimmed string}"
@@ -135,7 +132,7 @@ setting "_BESClient_RelaySelect_FailoverRelay"="{parameter "__DMZ_RELAY"}" on "{
 
 // Force client to post updated results
 Notify Client ForceRefresh]]></ActionScript>
-			<SuccessCriteria Option="OriginalRelevance"></SuccessCriteria>
+			<SuccessCriteria Option="CustomRelevance">exit code of action != 0</SuccessCriteria>
 		</DefaultAction>
 	</Task>
 </BES>

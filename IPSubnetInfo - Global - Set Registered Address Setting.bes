@@ -13,7 +13,6 @@
 		<Relevance>(not exists main gather service) AND (not exists relay service)</Relevance>
 		<Relevance>(not exists setting "_BESClient_RegistrationAddress" of client) OR (not exists setting "_BESClient_NetSignature" whose (value of it = unique value of concatenations ";" of (it as string) whose(it != "127.0.0.1" and it does not start with "169.") of addresses of ip interfaces of network as string) of client)</Relevance>
 		<Category>IPSubnetInfo, Global, Set Registered Address Setting</Category>
-		<DownloadSize>69696</DownloadSize>
 		<Source>HCL BigFix Professional Services</Source>
 		<SourceID></SourceID>
 		<SourceReleaseDate>2023-03-07</SourceReleaseDate>
@@ -22,7 +21,7 @@
 		<SANSID></SANSID>
 		<MIMEField>
 			<Name>x-fixlet-modification-time</Name>
-			<Value>Tue, 28 Mar 2023 23:54:09 +0000</Value>
+			<Value>Wed, 29 Mar 2023 21:59:41 +0000</Value>
 		</MIMEField>
 		<Domain>BESC</Domain>
 		<DefaultAction ID="Action1">
@@ -39,8 +38,7 @@
 // *** Date Modified :: 03/28/2023                                                 ***
 // *** *************************************************************************** ***
 
-// Hodor prefetch test for local IP address
-prefetch hodor.jpg sha1:ce842e0af799f2ba476511c8fbfdc3bf89612dd0 size:57656 https://i.imgur.com/YAUeUOG.jpg sha256:74f69205a016a3896290eae03627e15e8dfeba812a631b5e0afca140722a322b
+// Test gather for local IP address
 parameter "_BPS_Tmp_Prefetch_LocalIP" = "{elements of ((set of (it as string) of (local addresses of sockets whose (TCP of it and remote port of it = 52311) of network)) * (set of (it as string) of (addresses of ip interfaces whose (not loopback of it and up of it) of network)))}"
 
 // Test if PeerNest and PersistentConnections are NOT enabled.
