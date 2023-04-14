@@ -10,7 +10,6 @@
 <DIV style="FONT-SIZE: 18px; FONT-FAMILY: sans-serif; FONT-WEIGHT: 300; PADDING-BOTTOM: 20px; PADDING-TOP: 20px; PADDING-LEFT: 20px; PADDING-RIGHT: 20px">This fixlet performs additional logic to set the "_BESClient_RegistrationAddress" setting for all managed endpoints to leverage during the IPSubnetInfo and BESRelay registration processes.</DIV>
 <DIV style="FONT-SIZE: 18px; FONT-FAMILY: sans-serif; FONT-WEIGHT: 300; PADDING-BOTTOM: 20px; PADDING-TOP: 20px; PADDING-LEFT: 20px; PADDING-RIGHT: 20px">Please see <A href="https://github.com/cmcannady/IPSubnetInfo">https://github.com/cmcannady/IPSubnetInfo</A>&nbsp;for additional details and documentation for the IPSubnetInfo and related open-source projects.</DIV>
 <DIV style="FONT-SIZE: 18px; FONT-FAMILY: sans-serif; FONT-WEIGHT: 300; PADDING-BOTTOM: 20px; PADDING-TOP: 20px; PADDING-LEFT: 20px; PADDING-RIGHT: 20px"><STRONG><FONT color=#ff0000>NOTE: All content available from&nbsp;my personal&nbsp;GitHub is provided AS-IS and without warranty.</FONT></STRONG></DIV></DIV>]]></Description>
-		<Relevance>(not exists main gather service) AND (not exists relay service)</Relevance>
 		<Relevance>(not exists setting "_BESClient_RegistrationAddress" of client) OR (not exists setting "_BESClient_NetSignature" whose (value of it = unique value of concatenations ";" of (it as string) whose(it != "127.0.0.1" and it does not start with "169.") of addresses of ip interfaces of network as string) of client)</Relevance>
 		<Category>IPSubnetInfo, Global, Set Registered Address Setting</Category>
 		<Source>HCL BigFix Professional Services</Source>
@@ -21,7 +20,7 @@
 		<SANSID></SANSID>
 		<MIMEField>
 			<Name>x-fixlet-modification-time</Name>
-			<Value>Tue, 11 Apr 2023 20:17:00 +0000</Value>
+			<Value>Fri, 14 Apr 2023 16:13:06 +0000</Value>
 		</MIMEField>
 		<Domain>BESC</Domain>
 		<DefaultAction ID="Action1">
@@ -30,12 +29,12 @@
 				<Link>here</Link>
 				<PostLink> to run this action.</PostLink>
 			</Description>
-			<ActionScript MIMEType="application/x-Fixlet-Windows-Shell"><![CDATA[// *** *************************************************************************** ***
+			<ActionScript MIMEType="application/x-Fixlet-Windows-Shell">// *** *************************************************************************** ***
 // *** Title         :: Support | BPS | Set Registered Address Property            ***
 // *** Author        :: Casey Cannady (casey.cannady@hcl.com)                      ***
 // *** Company       :: HCL Software - BigFix Professional Services                ***
 // *** Date Created  :: 03/07/2023                                                 ***
-// *** Date Modified :: 03/28/2023                                                 ***
+// *** Date Modified :: 04/14/2023                                                 ***
 // *** *************************************************************************** ***
 
 // Test gather for local IP address
@@ -58,64 +57,12 @@ parameter "_BPS_Comms_Port" = "52311"
 parameter "_BPS_Tmp_RegAddr" = "{registration address of client as string | "-1"}"
 parameter "_BPS_Tmp_RegSvr" = "{if ((it does not contain "127.0.0.1" and it does not contain "::1") of name of registration server) then (name of registration server) else if (exists setting "_BESRelay_PostResults_ParentRelayURL" of client and exists value of setting "_BESRelay_PostResults_ParentRelayURL" of client as string) then (preceding text of first "/" of (following text of first "//" of (value of setting "_BESRelay_PostResults_ParentRelayURL" of client))) else (if exists value of settings "_BESClient_Relay_NameOverride" of client then value of setting "_BESClient_Relay_NameOverride" of client else if (exists true whose ( if true then exists dns name else false ) ) then dns name else "localhost")}"
 
-// Determine endpoint OS and execute specific commands
-if {windows of operating system}
-	action uses wow64 redirection false
-
-	// Good housekeeping
-	delete __createfile
-	delete "{(pathname of parent folder of client) & "\Ps1NetConnection.ps1"}"
-	delete "{(pathname of parent folder of client) & "\Ps1NetConnection.out"}"
-	
-	// Generate PowerShell script
-	createfile until _END_OF_FILE_
-		test-netconnection -ComputerName {parameter "_BPS_Tmp_RegSvr"} -InformationLevel Detailed -Port {parameter "_BPS_Comms_Port"} | Out-File "{(pathname of parent folder of client) & "\Ps1NetConnection.out"}"
-	_END_OF_FILE_
-	
-	// Rename PS1 file to execute and generate output
-	move __createfile "{(pathname of parent folder of client) & "\Ps1NetConnection.ps1"}"
-	
-	// Execute PS1 file and check for non-0 return code
-	waithidden {pathname of file ((it as string) of value "Path" of key "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell" of native registry)} -ExecutionPolicy Bypass -file "{(pathname of parent folder of client) & "\Ps1NetConnection.ps1"}"
-	parameter "ExitCode1" = "{if exist exit code of action then exit code of action as string else "999"}"
-	if {parameter "ExitCode1" != "0"}
-		exit {parameter "ExitCode1"}
-	endif
-	
-	// Attempt to pull source address from output file
-	if {not exist file (pathname of parent folder of client & "\Ps1NetConnection.out")}
-		exit 998
-	else
-		parameter "_Tmp_Client_SrcAddr" = "{following text of first ": " of line whose (it as string as lowercase starts with "sourceaddress") of file ((pathname of parent folder of client) & "\Ps1NetConnection.out")}"
-	endif
-elseif {mac of operating system OR unix of operating system}
-	// Good housekeeping
-	delete "{(pathname of parent folder of client) & "/PosixSrcIpAddr.out"}"
-	
-	// Execute Bash script and check for non-0 return code
-	wait sudo su - root -c "ip route get {parameter "_BPS_Tmp_RegSvr"} | awk -F %22src %22 'NR==1{split($2,a,%22 %22);print a[1]}' 2>&1 %22{(pathname of parent folder of client) & "/PosixSrcIpAddr.out%22"}"
-	parameter "ExitCode2" = "{if exist exit code of action then exit code of action as string else "997"}"
-	if {parameter "ExitCode2" != "0"}
-		exit {parameter "ExitCode2"}
-	endif
-	
-	// Attempt to pull source address from output file
-	if {not exist file (pathname of parent folder of client & "\PosixSrcIpAddr.out")}
-		exit 996
-	else
-		parameter "_Tmp_Client_SrcAddr" = "{line of file ((pathname of parent folder of client) & "/PosixSrcIpAddr.out")}"
-	endif
-endif
-
 // Tattoo the settings with the Network Signature
 setting "_BESClient_NetSignature"="{unique value of concatenations ";" of (it as string) whose(it != "127.0.0.1" and it does not start with "169.") of addresses of ip interfaces of network as string}" on "{now}" for client
 
 // Check returned values for source IPv4 address as a BESClient setting
 if {(parameter "_BPS_Tmp_RegAddr" as string != parameter "_BPS_Tmp_Prefetch_LocalIP" as string) AND (parameter "_BPS_Tmp_RegAddr" as string != parameter "_BPS_Tmp_Socket_LocalPort" as string) AND (parameter "_BPS_Tmp_RegAddr" as string != parameter "_BPS_Tmp_Socket_RemotePort" as string)}
-	parameter "ExitCode3" = "{if exist exit code of action then exit code of action as string else "995"}"
-	if {parameter "ExitCode3" != "0"}
-		exit {parameter "ExitCode3"}
-	endif
+	exit "999"
 else
 	if {(parameter "_BPS_Tmp_RegAddr" as string = parameter "_BPS_Tmp_Prefetch_LocalIP" as string)}
 		setting "_BESClient_RegistrationAddress"="{parameter "_BPS_Tmp_Prefetch_LocalIP"}" on "{now}" for client	
@@ -124,13 +71,7 @@ else
 	elseif {(parameter "_BPS_Tmp_RegAddr" as string = parameter "_BPS_Tmp_Socket_RemotePort" as string)}
 		setting "_BESClient_RegistrationAddress"="{parameter "_BPS_Tmp_Socket_RemotePort"}" on "{now}" for client	
 	endif
-endif
-
-//Check for errors and handle
-parameter "ExitCode4" = "{if exist exit code of action then exit code of action as string else "994"}"
-if {parameter "ExitCode4" != "0"}
-	exit {parameter "ExitCode4"}
-endif]]></ActionScript>
+endif</ActionScript>
 			<SuccessCriteria Option="CustomRelevance">exit code of action != 0</SuccessCriteria>
 		</DefaultAction>
 	</Task>
