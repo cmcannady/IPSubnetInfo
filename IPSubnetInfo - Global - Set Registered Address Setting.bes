@@ -10,7 +10,7 @@
 <DIV style="FONT-SIZE: 18px; FONT-FAMILY: sans-serif; FONT-WEIGHT: 300; PADDING-BOTTOM: 20px; PADDING-TOP: 20px; PADDING-LEFT: 20px; PADDING-RIGHT: 20px">This fixlet performs additional logic to set the "_BESClient_RegistrationAddress" setting for all managed endpoints to leverage during the IPSubnetInfo and BESRelay registration processes.</DIV>
 <DIV style="FONT-SIZE: 18px; FONT-FAMILY: sans-serif; FONT-WEIGHT: 300; PADDING-BOTTOM: 20px; PADDING-TOP: 20px; PADDING-LEFT: 20px; PADDING-RIGHT: 20px">Please see <A href="https://github.com/cmcannady/IPSubnetInfo">https://github.com/cmcannady/IPSubnetInfo</A>&nbsp;for additional details and documentation for the IPSubnetInfo and related open-source projects.</DIV>
 <DIV style="FONT-SIZE: 18px; FONT-FAMILY: sans-serif; FONT-WEIGHT: 300; PADDING-BOTTOM: 20px; PADDING-TOP: 20px; PADDING-LEFT: 20px; PADDING-RIGHT: 20px"><STRONG><FONT color=#ff0000>NOTE: All content available from&nbsp;my personal&nbsp;GitHub is provided AS-IS and without warranty.</FONT></STRONG></DIV></DIV>]]></Description>
-		<Relevance>(not exists setting "_BESClient_RegistrationAddress" of client) OR (not exists setting "_BESClient_NetSignature" whose (value of it = unique value of concatenations ";" of (it as string) whose(it != "127.0.0.1" and it does not start with "169.") of addresses of ip interfaces of network as string) of client)</Relevance>
+		<Relevance>(not exists setting "_BESClient_NetSignature" whose (value of it = unique value of concatenations ";" of (it as string) whose(it != "127.0.0.1" and it does not start with "169.") of addresses of ip interfaces of network as string) of client)</Relevance>
 		<Category>IPSubnetInfo, Global, Set Registered Address Setting</Category>
 		<Source>HCL BigFix Professional Services</Source>
 		<SourceID></SourceID>
@@ -20,7 +20,7 @@
 		<SANSID></SANSID>
 		<MIMEField>
 			<Name>x-fixlet-modification-time</Name>
-			<Value>Fri, 14 Apr 2023 16:13:06 +0000</Value>
+			<Value>Mon, 17 Apr 2023 18:11:46 +0000</Value>
 		</MIMEField>
 		<Domain>BESC</Domain>
 		<DefaultAction ID="Action1">
