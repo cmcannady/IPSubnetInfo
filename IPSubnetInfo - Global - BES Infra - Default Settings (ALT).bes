@@ -12,7 +12,8 @@
 <DIV style="FONT-SIZE: 18px; FONT-FAMILY: sans-serif; FONT-WEIGHT: 300; PADDING-BOTTOM: 20px; PADDING-TOP: 20px; PADDING-LEFT: 20px; PADDING-RIGHT: 20px"><STRONG><FONT color=#ff0000>NOTE: All content available from&nbsp;my personal&nbsp;GitHub is provided AS-IS and without warranty.</FONT></STRONG></DIV></DIV>]]></Description>
 		<Relevance>(exists relay service) OR (exists main gather service)</Relevance>
 		<Relevance>(not exists setting "__RelaySelect_Automatic" whose (value of it = "0") of client)</Relevance>
-		<Relevance>(not exists setting "_BESClient_RelaySelect_FailoverRelay" whose (value of it = "http://DMZ-FDQN-GOES-HERE:52311/bfmirror/downloads/") of client)</Relevance>
+		<Relevance>/* MAKE SURE TO UPDATE THE DMZ-FDQN-GOES-HERE WITH CORRECT C-NAME ALIAS */
+(not exists setting "_BESClient_RelaySelect_FailoverRelay" whose (value of it = "http://DMZ-FDQN-GOES-HERE:52311/bfmirror/downloads/") of client)</Relevance>
 		<Relevance>(not exists setting "_BESClient_NetSignature" whose (value of it = unique value of concatenations ";" of (it as string) whose(it != "127.0.0.1" and it does not start with "169.") of addresses of ip interfaces of network as string) of client)</Relevance>
 		<Relevance>false</Relevance>
 		<Category>IPSubnetInfo, Global, BES Infra, Default Settings (ALT)</Category>
@@ -24,7 +25,7 @@
 		<SANSID></SANSID>
 		<MIMEField>
 			<Name>x-fixlet-modification-time</Name>
-			<Value>Fri, 14 Apr 2023 17:44:39 +0000</Value>
+			<Value>Tue, 23 May 2023 15:00:34 +0000</Value>
 		</MIMEField>
 		<Domain>BESC</Domain>
 		<DefaultAction ID="Action1">
@@ -38,13 +39,13 @@
 // *** Author        :: Casey Cannady (casey.cannady@hcl.com)                      ***
 // *** Company       :: HCL Software - BigFix Professional Services                ***
 // *** Date Created  :: 10/23/2019                                                 ***
-// *** Date Modified :: 04/14/2023                                                 ***
+// *** Date Modified :: 05/23/2023                                                 ***
 // *** *************************************************************************** ***
 
 // Static parameters
-//   ***
-//   *** MAKE SURE TO UPDATE THE DMZ-FDQN-GOES-HERE WITH CORRECT C-NAME ALIAS ***
-//   ***
+// *** ********************************************************************** ***
+// *** MAKE SURE TO UPDATE THE DMZ-FDQN-GOES-HERE WITH CORRECT C-NAME ALIAS   ***
+// *** ********************************************************************** ***
 parameter "__DMZ_RELAY" = "http://DMZ-FDQN-GOES-HERE:52311/bfmirror/downloads/"
 parameter "__BESRelays"="{concatenation "|" of ( ("http://BFREL" & it & ".BESRELAY-FDQN-GOES-HERE:52311/bfmirror/downloads/") of items 1 of items 0 of (((0, "01");(1, "02")), it) whose (item 0 of item 0 of it = item 1 of it) of (it mod 2; (it + 1) mod 2) of (computer id))}"
 
@@ -62,28 +63,39 @@ endif
 // Check for existance of IPSubnetInfo CSV file in current site cache
 if {exists file "IPSubnetInfo.csv" of client folder of current site}
 	// Identify IPSubnetInfo record from CSV by CIDR string comparison
-	parameter "__IPSubnetInfo" = {(tuple string item 2 of item 1 of it) of (maximum of (it as integer) of tuple string items 3 of substrings separated by "|" of it, substrings separated by "|" of it) whose (item 0 of it as integer = tuple string item 3 of item 1 of it as integer) of concatenation "|" of (it as string) of (first (tuple string item 1 of tuple string item 1 of it as integer) of it, first (tuple string item 1 of it as integer) of tuple string item 1 of it,tuple string item 2 of tuple string item 1 of it, tuple string item 1 of tuple string item 1 of it as integer) whose (item 0 of it = item 1 of it) of (it as string) of (elements of item 0 of it, (concatenation of lasts 8 of padded strings of (it as integer as bit set) of substrings separated by "." of tuple string item 0 of it, number of one bits of bit set (concatenation of lasts 8 of padded strings of (it as integer as bit set) of substrings separated by "." of tuple string item 1 of it) , tuple string item 2 of it) of (concatenation ", " of substrings separated by "," of it) of elements of item 1 of it) of ((set of ((concatenation of lasts 8 of padded strings of (it as integer as bit set) of substrings separated by "." of (parameter "__RegistrationAddress")))) , (set of lines whose ((it starts with regex "^\d{1,3}}\.\d{1,3}}.\d{1,3}}.\d{1,3}}.*")) of file "IPSubnetInfo.csv" of folder (pathname of client folder of current site)))}
+	// *** ************************************************** ***
+	// *** PLEASE do not change the following relevance       ***
+	// *** unless you're very comfortable with advance        ***
+	// *** relevance concepts like concatenations and tuples. ***
+	// *** ************************************************** ***
+	parameter "__IPSubnetInfo" = "{((item 1 of it as string) of (maximum of (tuple string items 0 of substrings separated by "|" of it as integer) |0 , substrings separated by "|" of it) whose (item 0 of it = (tuple string item 0 of item 1 of it as integer)) of concatenation "|" of (concatenation ", " of tuple string items of item 0 of it) of (elements of item 0 of it , elements of item 1 of it) whose (item 1 of it starts with tuple string item 1 of item 0 of it) of ((set of(concatenation ", " of ((following text of first "/" of it) of tuple string item 0 of it /*the mask size*/ ;((first (following text of first "/" of it as integer) of it) of ((concatenation of lasts 8 of padded strings of (it as integer as bit set) of substrings separated by "." of preceding text of first "/" of tuple string item 0 of it) & "/" & following text of first "/" of it) of tuple string item 0 of it);(tuple string items of it))) of (concatenation ", " of substrings separated by "," of it) of lines whose ((it starts with regex "^\d{1,3}}\.\d{1,3}}\.\d{1,3}}\.\d{1,3}}\.*")) of (file "IPSubnetInfo.csv" of folder (pathname of client folder of current site))) , (set of (concatenation of lasts 8 of padded strings of (it as integer as bit set) of substrings separated by "." of (value of setting "_BESClient_RegistrationAddress" of client))))) as string}"
 	
 	// Extract subnet info for client
-	parameter "__IPSubnet_Subnet" = "{preceding text of first ";" of (parameter "__IPSubnetInfo") as trimmed string}"
-	parameter "__IPSubnet_SubnetMask" = "{preceding text of first ";" of following text of first ";" of (parameter "__IPSubnetInfo") as trimmed string}"
-	parameter "__IPSubnet_Region" = "{preceding text of first "-" of following text of last ";" of (parameter "__IPSubnetInfo") as trimmed string}"
-	parameter "__IPSubnet_Country" = "{following text of last "-" of preceding text of last "-" of preceding text of last "-" of following text of last ";" of (parameter "__IPSubnetInfo") as trimmed string}"
-	parameter "__IPSubnet_SiteName" = "{following text of last "-" of preceding text of last "-" of following text of last ";" of (parameter "__IPSubnetInfo") as trimmed string}"
-	parameter "__IPSubnet_SiteID" = "{following text of last "-" of (parameter "__IPSubnetInfo") as trimmed string}"
+	parameter "__IPSubnet_Subnet" = "{(tuple string item 2 of it|"IPMissing") of (parameter "__IPSubnetInfo") as trimmed string}"
+	parameter "__IPSubnet_SubnetMask" = "{(tuple string item 0 of it|"SubnetMissing") of (parameter "__IPSubnetInfo") as trimmed string}"
+	parameter "__IPSubnet_Region" = "{(tuple string item 7 of it|"RegionMissing") of (parameter "__IPSubnetInfo") as trimmed string}"
+	parameter "__IPSubnet_Country" = "{(tuple string item 6 of it|"CountryMissing") of (parameter "__IPSubnetInfo") as trimmed string}"
+	parameter "__IPSubnet_State" = "{(tuple string item 5 of it|"StateMissing") of (parameter "__IPSubnetInfo") as trimmed string}"
+	parameter "__IPSubnet_SiteName" = "{(tuple string item 4 of it|"SiteNameMissing") of (parameter "__IPSubnetInfo") as trimmed string}"
+	parameter "__IPSubnet_SiteID" = "{(tuple string item 3 of it|"SiteCodeMissing") of (parameter "__IPSubnetInfo") as trimmed string}"
 	
-	// Set the SeekList using the IPSubnetInfo CSV file query
-	setting "_BESRelay_Register_Affiliation_AdvertisementList"="{parameter "__IPSubnet_SiteID" & "," & parameter "__IPSubnet_SiteName" & "," & parameter "__IPSubnet_Country" & "," & parameter "__IPSubnet_Region"}" on "{now}" for client
+	// Set the AdvertisementList using the IPSubnetInfo CSV file query
+	// *** ************************************************** ***
+	// *** Please make sure to remove the * at the end of the ***
+	// *** AdvertisementList to remove the wild card option.  ***
+	// *** ************************************************** ***
+	setting "_BESRelay_Register_Affiliation_AdvertisementList"="{parameter "__IPSubnet_SiteID" & ";" & parameter "__IPSubnet_SiteName" & ";" & parameter "__IPSubnet_State" & ";" & parameter "__IPSubnet_Country" & ";" & parameter "__IPSubnet_Region" & ";*"}" on "{now}" for client
 else
 	// Record current state in absence of IPSubnetInfo CSV file
 	parameter "__IPSubnet_Subnet" = "{subnet address of adapters of network}"
 	parameter "__IPSubnet_SubnetMask" = "{subnet mask of adapters of network}"
 	parameter "__IPSubnet_Region" = "UNKNOWN"
 	parameter "__IPSubnet_Country" = "UNKNOWN"
+	parameter "__IPSubnet_State" = "UNKNOWN"
 	parameter "__IPSubnet_SiteName" = "UNKNOWN"
 	parameter "__IPSubnet_SiteID" = "UNKNOWN"
 	
-	// Set the SeekList using the AD-Site client property
+	// Set the AdvertisementList using the AD-Site client property
 	setting "_BESRelay_Register_Affiliation_AdvertisementList"="*" on "{now}" for client
 endif
 
@@ -99,10 +111,11 @@ setting "__RelayServer2"="{following text of first "|" of (parameter "__BESRelay
 relay select
 
 // Set subnet info client properties
-setting "__IPSubnet_BESClient_IP_Subnet"="{parameter "__IPSubnet_Subnet"}" on "{now}" for client
+setting "__IPSubnet_BESClient_Subnet"="{parameter "__IPSubnet_Subnet"}" on "{now}" for client
 setting "__IPSubnet_BESClient_SubnetMask"="{parameter "__IPSubnet_SubnetMask"}" on "{now}" for client
 setting "__IPSubnet_BESClient_Region"="{parameter "__IPSubnet_Region"}" on "{now}" for client
 setting "__IPSubnet_BESClient_Country"="{parameter "__IPSubnet_Country"}" on "{now}" for client
+setting "__IPSubnet_BESClient_State"="{parameter "__IPSubnet_State"}" on "{now}" for client
 setting "__IPSubnet_BESClient_SiteName"="{parameter "__IPSubnet_SiteName"}" on "{now}" for client
 setting "__IPSubnet_BESClient_SiteID"="{parameter "__IPSubnet_SiteID"}" on "{now}" for client
 

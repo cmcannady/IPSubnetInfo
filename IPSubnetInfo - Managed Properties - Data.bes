@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Property Name="SiteName" EvaluationPeriod="PT6H">if (exists setting "__IPSubnet_BESClient_SiteName" of client) then (value of setting "__IPSubnet_BESClient_SiteName" of client) else ("SiteName does not exist.")</Property>
+	<Property Name="Region" EvaluationPeriod="PT6H">if (exists setting "__IPSubnet_BESClient_Region" of client) then (value of setting "__IPSubnet_BESClient_Region" of client) else ("Region does not exist.")</Property>
+	<Property Name="Country" EvaluationPeriod="PT6H">if (exists setting "__IPSubnet_BESClient_Country" of client) then (value of setting "__IPSubnet_BESClient_Country" of client) else ("Country does not exist.")</Property>
+	<Property Name="SiteID" EvaluationPeriod="PT6H">if (exists setting "__IPSubnet_BESClient_SiteID" of client) then (value of setting "__IPSubnet_BESClient_SiteID" of client) else ("Site ID does not exist.")</Property>
+	<Property Name="AdvSeekList" EvaluationPeriod="PT6H">if (exists setting "_BESRelay_Register_Affiliation_AdvertisementList" of client) then (value of setting "_BESRelay_Register_Affiliation_AdvertisementList" of client) else (if (exists setting "_BESClient_Register_Affiliation_SeekList" of client) then (value of setting "_BESClient_Register_Affiliation_SeekList" of client) else ("AdvertisementList/SeekList does not exist."))</Property>
+</BES>

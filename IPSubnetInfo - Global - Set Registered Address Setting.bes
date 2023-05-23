@@ -20,7 +20,7 @@
 		<SANSID></SANSID>
 		<MIMEField>
 			<Name>x-fixlet-modification-time</Name>
-			<Value>Mon, 17 Apr 2023 18:11:46 +0000</Value>
+			<Value>Tue, 16 May 2023 14:02:51 +0000</Value>
 		</MIMEField>
 		<Domain>BESC</Domain>
 		<DefaultAction ID="Action1">
@@ -34,7 +34,7 @@
 // *** Author        :: Casey Cannady (casey.cannady@hcl.com)                      ***
 // *** Company       :: HCL Software - BigFix Professional Services                ***
 // *** Date Created  :: 03/07/2023                                                 ***
-// *** Date Modified :: 04/14/2023                                                 ***
+// *** Date Modified :: 05/16/2023                                                 ***
 // *** *************************************************************************** ***
 
 // Test gather for local IP address
@@ -61,16 +61,18 @@ parameter "_BPS_Tmp_RegSvr" = "{if ((it does not contain "127.0.0.1" and it does
 setting "_BESClient_NetSignature"="{unique value of concatenations ";" of (it as string) whose(it != "127.0.0.1" and it does not start with "169.") of addresses of ip interfaces of network as string}" on "{now}" for client
 
 // Check returned values for source IPv4 address as a BESClient setting
-if {(parameter "_BPS_Tmp_RegAddr" as string != parameter "_BPS_Tmp_Prefetch_LocalIP" as string) AND (parameter "_BPS_Tmp_RegAddr" as string != parameter "_BPS_Tmp_Socket_LocalPort" as string) AND (parameter "_BPS_Tmp_RegAddr" as string != parameter "_BPS_Tmp_Socket_RemotePort" as string)}
-	exit "999"
-else
+if {parameter "_BPS_Tmp_RegAddr" = "-1"}
 	if {(parameter "_BPS_Tmp_RegAddr" as string = parameter "_BPS_Tmp_Prefetch_LocalIP" as string)}
-		setting "_BESClient_RegistrationAddress"="{parameter "_BPS_Tmp_Prefetch_LocalIP"}" on "{now}" for client	
+		setting "_BESClient_RegistrationAddress"="{parameter "_BPS_Tmp_Prefetch_LocalIP"}" on "{now}" for client
 	elseif {(parameter "_BPS_Tmp_RegAddr" as string = pameter "_BPS_Tmp_Socket_LocalPort" as string)}
-		setting "_BESClient_RegistrationAddress"="{parameter "_BPS_Tmp_Socket_LocalPort"}" on "{now}" for client	
+		setting "_BESClient_RegistrationAddress"="{parameter "_BPS_Tmp_Socket_LocalPort"}" on "{now}" for client
 	elseif {(parameter "_BPS_Tmp_RegAddr" as string = parameter "_BPS_Tmp_Socket_RemotePort" as string)}
-		setting "_BESClient_RegistrationAddress"="{parameter "_BPS_Tmp_Socket_RemotePort"}" on "{now}" for client	
+		setting "_BESClient_RegistrationAddress"="{parameter "_BPS_Tmp_Socket_RemotePort"}" on "{now}" for client
+	else
+		exit 999
 	endif
+else
+	setting "_BESClient_RegistrationAddress"="{parameter "_BPS_Tmp_RegAddr"}" on "{now}" for client
 endif</ActionScript>
 			<SuccessCriteria Option="CustomRelevance">exit code of action != 0</SuccessCriteria>
 		</DefaultAction>

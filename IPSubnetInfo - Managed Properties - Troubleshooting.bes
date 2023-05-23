@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Property Name="CSV-Exists" EvaluationPeriod="PT6H">exists file "IPSubnetInfo.csv" of folder (pathname of client folder of current site as trimmed string)</Property>
+	<Property Name="CSV-ModifiedDate" EvaluationPeriod="PT6H">if (exists file "IPSubnetInfo.csv" of folder (pathname of client folder of current site as trimmed string)) then (modification time of file "IPSubnetInfo.csv" of folder (pathname of client folder of current site as trimmed string) as string) else ("CSV file IS NOT present on endpoint.")</Property>
+	<Property Name="RegistrationAddress-Exists" EvaluationPeriod="PT6H">if (exists setting "_BESClient_RegistrationAddress" of client) then (value of setting "_BESClient_RegistrationAddress" of client) else ("Registration address setting IS NOT set!")</Property>
+</BES>
