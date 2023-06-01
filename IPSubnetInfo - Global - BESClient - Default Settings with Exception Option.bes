@@ -29,7 +29,7 @@
 		<SANSID></SANSID>
 		<MIMEField>
 			<Name>x-fixlet-modification-time</Name>
-			<Value>Tue, 23 May 2023 17:55:43 +0000</Value>
+			<Value>Thu, 01 Jun 2023 14:06:58 +0000</Value>
 		</MIMEField>
 		<Domain>BESC</Domain>
 		<DefaultAction ID="Action1">
@@ -43,7 +43,7 @@
 // *** Author        :: Casey Cannady (casey.cannady@hcl.com)                      ***
 // *** Company       :: HCL Software - BigFix Professional Services                ***
 // *** Date Created  :: 10/23/2019                                                 ***
-// *** Date Modified :: 05/23/2023                                                 ***
+// *** Date Modified :: 06/01/2023                                                 ***
 // *** *************************************************************************** ***
 
 // Static parameters
@@ -149,9 +149,7 @@ else
 endif
 
 // Sets the discovery date property
-if {windows of operating system}
-	setting "Discovery Date"="{creation time of parent folder of client}" on "{now}" for client
-endif
+setting "Discovery Date"="{minimum of subscribe times of sites}" on "{now}" for client
 
 // Tattoo the settings with the Network Signature
 setting "_BESClient_NetSignature"="{unique value of concatenations ";" of (it as string) whose(it != "127.0.0.1" and it does not start with "169.") of addresses of ip interfaces of network as string}" on "{now}" for client
